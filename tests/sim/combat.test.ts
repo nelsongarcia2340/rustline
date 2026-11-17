@@ -87,18 +87,18 @@ describe('combat in step', () => {
   it('walks to the enemy base with no enemies, stops in range and damages the base', () => {
     const w = createWorld();
     const s = spawnUnit(w, 'scrapper');
-    for (let i = 0; i < 3000 && w.baseHp.enemy === 3500; i++) step(w);
+    for (let i = 0; i < 3000 && w.baseHp.enemy === 3500; i++) step(w, []);
     expect(w.baseHp.enemy).toBe(3500 - 12);
     expect(Math.abs(s.x - 2900) - 60).toBeLessThanOrEqual(30);
     const stoppedAt = s.x;
-    for (let i = 0; i < 10; i++) step(w);
+    for (let i = 0; i < 10; i++) step(w, []);
     expect(s.x).toBe(stoppedAt);
   });
 
   it('enemy with no opposing units walks to the player base without stalling', () => {
     const w = createWorld();
     const r = spawnUnit(w, 'rustbot');
-    for (let i = 0; i < 3000 && w.baseHp.player === 2000; i++) step(w);
+    for (let i = 0; i < 3000 && w.baseHp.player === 2000; i++) step(w, []);
     expect(w.baseHp.player).toBe(2000 - 10);
     expect(Math.abs(r.x - 100) - 60).toBeLessThanOrEqual(30);
   });
