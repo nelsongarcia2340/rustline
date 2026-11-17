@@ -1,6 +1,7 @@
 import { getDef, type Side, type UnitDef } from '../data/units';
 import { combatPhase } from './combat';
-import { BASE_MAX_HP, SPAWN_X, TICKS_PER_SEC } from './constants';
+import { BASE_MAX_HP, SPAWN_X, START_ENERGY, TICKS_PER_SEC } from './constants';
+import { economyPhase } from './economy';
 
 export interface Unit {
   uid: number;
@@ -22,8 +23,6 @@ export interface World {
   bossSpawned: boolean;
   nextUid: number;
 }
-
-export const START_ENERGY = 100;
 
 export function createWorld(): World {
   return {
@@ -62,9 +61,10 @@ function moveUnits(world: World, held: Set<Unit>): void {
   }
 }
 
-/** Advance the simulation by one tick. Later phases (economy, spawner) slot in here. */
+/** Advance the simulation by one tick. Later phases (spawner) slot in here. */
 export function step(world: World): void {
   world.tick++;
+  economyPhase(world);
   const held = new Set<Unit>();
   for (const u of world.units) {
     if (u.staggerTicks > 0) {
