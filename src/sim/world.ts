@@ -1,4 +1,5 @@
 import { getDef, type Side, type UnitDef } from '../data/units';
+import { combatPhase } from './combat';
 import { BASE_MAX_HP, SPAWN_X, TICKS_PER_SEC } from './constants';
 
 export interface Unit {
@@ -52,19 +53,25 @@ export function spawnUnit(world: World, defId: string): Unit {
   return unit;
 }
 
-function moveUnits(world: World): void {
+/** Units in `held` (staggered or fighting) do not walk this tick. */
+function moveUnits(world: World, held: Set<Unit>): void {
   for (const u of world.units) {
-    if (u.staggerTicks > 0) {
-      u.staggerTicks--;
-      continue;
-    }
+    if (held.has(u)) continue;
     const dir = u.def.side === 'player' ? 1 : -1;
     u.x += (dir * u.def.speed) / TICKS_PER_SEC;
   }
 }
 
-/** Advance the simulation by one tick. Later phases (combat, economy, spawner) slot in here. */
+/** Advance the simulation by one tick. Later phases (economy, spawner) slot in here. */
 export function step(world: World): void {
   world.tick++;
-  moveUnits(world);
+  const held = new Set<Unit>();
+  for (const u of world.units) {
+    if (u.staggerTicks > 0) {
+      u.staggerTicks--;
+      held.add(u);
+    }
+  }
+  combatPhase(world, held);
+  moveUnits(world, held);
 }
