@@ -1,6 +1,7 @@
 import { getDef } from '../data/units';
 import { ENERGY_CAP, ENERGY_REGEN_PER_SEC, TICKS_PER_SEC } from './constants';
-import { spawnUnit, type World } from './world';
+import { spawnUnit } from './spawn';
+import type { World } from './world';
 
 /** Regenerate energy and tick deploy cooldowns down. `world.cooldowns` holds remaining ticks. */
 export function economyPhase(world: World): void {

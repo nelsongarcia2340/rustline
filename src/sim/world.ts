@@ -1,6 +1,6 @@
-import { getDef, type Side, type UnitDef } from '../data/units';
+import type { Side, UnitDef } from '../data/units';
 import { combatPhase } from './combat';
-import { BASE_MAX_HP, SPAWN_X, START_ENERGY, TICKS_PER_SEC } from './constants';
+import { BASE_MAX_HP, START_ENERGY, TICKS_PER_SEC } from './constants';
 import { economyPhase } from './economy';
 
 export interface Unit {
@@ -37,20 +37,7 @@ export function createWorld(): World {
   };
 }
 
-export function spawnUnit(world: World, defId: string): Unit {
-  const def = getDef(defId);
-  const unit: Unit = {
-    uid: world.nextUid++,
-    def,
-    x: SPAWN_X[def.side],
-    hp: def.hp,
-    attackTimer: 0,
-    staggerTicks: 0,
-    kbStage: 0,
-  };
-  world.units.push(unit);
-  return unit;
-}
+export { spawnUnit } from './spawn';
 
 /** Units in `held` (staggered or fighting) do not walk this tick. */
 function moveUnits(world: World, held: Set<Unit>): void {
