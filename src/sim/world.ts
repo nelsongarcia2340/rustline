@@ -73,5 +73,10 @@ export function step(world: World): void {
     }
   }
   combatPhase(world, held);
+  for (const u of world.units) {
+    if (u.staggerTicks > 0) held.add(u); // knocked back this tick: do not walk it back immediately
+  }
   moveUnits(world, held);
+  // Dead units are removed only now, so same-tick exchanges stay simultaneous.
+  world.units = world.units.filter((u) => u.hp > 0);
 }
