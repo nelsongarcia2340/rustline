@@ -41,33 +41,46 @@ function knockBack(u: Unit): void {
   }
 }
 
-/**
- * Damage a unit or base. A surviving unit is knocked back once whenever a new 1/3 HP-loss
- * threshold has been crossed (even if one hit crosses two). Dead units are removed by `step`.
- */
-export function applyDamage(world: World, target: Unit | Side, amount: number): void {
+/** Subtract HP from a unit or base. Knockback is resolved separately (see `resolveKnockback`). */
+function dealDamage(world: World, target: Unit | Side, amount: number): void {
   if (typeof target === 'string') {
     world.baseHp[target] = Math.max(0, world.baseHp[target] - amount);
-    return;
-  }
-  target.hp -= amount;
-  if (target.hp <= 0) return;
-  let crossed = 0;
-  for (let k = 1; k < KNOCKBACK_STAGES; k++) {
-    if (target.hp <= target.def.hp * (1 - k / KNOCKBACK_STAGES)) crossed = k;
-  }
-  if (crossed > target.kbStage) {
-    target.kbStage = crossed;
-    target.staggerTicks = STAGGER_TICKS;
-    knockBack(target);
+  } else {
+    target.hp -= amount;
   }
 }
 
-/** An attacker's hit on its target; splash also hits every living opposing unit near the target. */
-function attack(world: World, attacker: Unit, target: Target): void {
+/**
+ * Knock a surviving unit back once if its current HP has crossed a new 1/3 HP-loss threshold
+ * (even if one or several hits crossed two): sets kbStage, staggerTicks and moves it.
+ */
+function resolveKnockback(u: Unit): void {
+  if (u.hp <= 0) return;
+  let crossed = 0;
+  for (let k = 1; k < KNOCKBACK_STAGES; k++) {
+    if (u.hp <= u.def.hp * (1 - k / KNOCKBACK_STAGES)) crossed = k;
+  }
+  if (crossed > u.kbStage) {
+    u.kbStage = crossed;
+    u.staggerTicks = STAGGER_TICKS;
+    knockBack(u);
+  }
+}
+
+/** Damage a unit or base and, for a unit, immediately apply any knockback. Dead units are removed by `step`. */
+export function applyDamage(world: World, target: Unit | Side, amount: number): void {
+  dealDamage(world, target, amount);
+  if (typeof target !== 'string') resolveKnockback(target);
+}
+
+/**
+ * An attacker's hit on its target; splash also hits every living opposing unit near the target.
+ * Only HP changes here: damaged units are recorded in `damaged` so `combatPhase` can resolve
+ * knockback after every attack of the tick, keeping the tick independent of unit order.
+ */
+function attack(world: World, attacker: Unit, target: Target, damaged: Set<Unit>): void {
   const dmg = attacker.def.dmg;
   const center = target.kind === 'unit' ? target.unit.x : BASE_X[target.side];
-  // Collect first so knockback moves do not change who is in the radius.
   const victims: Unit[] = [];
   if (attacker.def.splashRadius > 0) {
     const enemySide = opposing(attacker.def.side);
@@ -79,18 +92,24 @@ function attack(world: World, attacker: Unit, target: Target): void {
   if (target.kind === 'unit') {
     if (!victims.includes(target.unit)) victims.push(target.unit);
   } else {
-    applyDamage(world, target.side, dmg);
+    dealDamage(world, target.side, dmg);
   }
-  for (const v of victims) applyDamage(world, v, dmg);
+  for (const v of victims) {
+    dealDamage(world, v, dmg);
+    damaged.add(v);
+  }
 }
 
 /**
  * Every unit's attack timer counts down each tick (staggered units included); only targeting
  * and attacking are skipped for staggered units (those in `held` on entry). A unit that has a
  * target is added to `held` so it does not move this tick. Units already at 0 HP from earlier
- * in the same tick still attack; `step` removes dead units afterwards.
+ * in the same tick still attack; `step` removes dead units afterwards. Knockback from this
+ * tick's hits is applied only after the whole loop (once per unit, from its final HP), so
+ * positions do not change mid-iteration and the outcome does not depend on unit order.
  */
 export function combatPhase(world: World, held: Set<Unit>): void {
+  const damaged = new Set<Unit>();
   for (const u of world.units) {
     if (u.attackTimer > 0) u.attackTimer--;
     if (held.has(u)) continue; // staggered: no targeting, no attack
@@ -98,8 +117,9 @@ export function combatPhase(world: World, held: Set<Unit>): void {
     if (!target) continue;
     held.add(u);
     if (u.attackTimer === 0) {
-      attack(world, u, target);
+      attack(world, u, target, damaged);
       u.attackTimer = Math.round(u.def.attackIntervalSec * TICKS_PER_SEC);
     }
   }
+  for (const u of damaged) resolveKnockback(u);
 }

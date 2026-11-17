@@ -173,6 +173,45 @@ describe('death removal', () => {
   });
 });
 
+describe('same-tick order independence with knockback', () => {
+  it('a threshold-crossing hit does not cost the victim its retaliation, in either unit order', () => {
+    const results = [false, true].map((reversed) => {
+      const w = createWorld();
+      const s = spawnUnit(w, 'scrapper');
+      s.x = 1000;
+      const r = spawnUnit(w, 'rustbot');
+      r.x = 1025;
+      r.hp = 105;
+      if (reversed) w.units.reverse();
+      step(w);
+      return { sHp: s.hp, sX: s.x, rHp: r.hp, rX: r.x, rStagger: r.staggerTicks };
+    });
+    expect(results[0]).toEqual({ sHp: 110, sX: 1000, rHp: 93, rX: 1065, rStagger: 10 });
+    expect(results[1]).toEqual(results[0]);
+  });
+
+  it('a unit hit by several attackers in one tick is knocked back once, from its final hp', () => {
+    for (const reversed of [false, true]) {
+      const w = createWorld();
+      const a = spawnUnit(w, 'sprinter');
+      const b = spawnUnit(w, 'sprinter');
+      const c = spawnUnit(w, 'sprinter');
+      a.x = 1000;
+      b.x = 1005;
+      c.x = 1010;
+      const r = spawnUnit(w, 'rustbot');
+      r.x = 1020;
+      r.hp = 120; // three hits of 25 -> 45, crossing both lines (100 and 50)
+      if (reversed) w.units.reverse();
+      step(w);
+      expect(r.hp).toBe(45);
+      expect(r.x).toBe(1060); // exactly one 40-unit knockback
+      expect(r.kbStage).toBe(2);
+      expect(r.staggerTicks).toBe(10);
+    }
+  });
+});
+
 describe('splash', () => {
   it('a Titan hit kills three clustered enemies and spares one 100 units away', () => {
     const w = createWorld();
