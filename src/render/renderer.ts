@@ -2,7 +2,10 @@ import { findTarget } from '../sim/combat';
 import { BASE_MAX_HP, BASE_X, TICKS_PER_SEC } from '../sim/constants';
 import type { Side } from '../data/units';
 import type { Unit, World } from '../sim/world';
+import type { Effect } from './effects';
+import { EFFECT_DURATION_MS } from './effects';
 import type { buildSpriteCache } from '../sprites/cache';
+import { ENEMY_WEAPON, PLAYER_WEAPON } from '../sprites/palette';
 import type { Camera } from './camera';
 
 type SpriteCache = ReturnType<typeof buildSpriteCache>;
@@ -10,6 +13,7 @@ type SpriteCache = ReturnType<typeof buildSpriteCache>;
 const CANVAS_WIDTH = 960;
 const CANVAS_HEIGHT = 540;
 const GROUND_Y = 420;
+const EFFECT_Y_OFFSET = 18;
 
 function worldToScreenX(worldX: number, cam: Camera): number {
   return worldX - cam.x;
@@ -149,12 +153,62 @@ function drawUnit(
   drawHpBar(ctx, screenX, drawY - 8, unit.hp / unit.def.hp, frame.width);
 }
 
+function drawEffects(ctx: CanvasRenderingContext2D, cam: Camera, effects: Effect[], nowMs: number): void {
+  const y = GROUND_Y - EFFECT_Y_OFFSET;
+
+  for (const effect of effects) {
+    const duration = EFFECT_DURATION_MS[effect.kind];
+    const progress = Math.max(0, Math.min(1, (nowMs - effect.startMs) / duration));
+    const color = effect.side === 'player' ? PLAYER_WEAPON : ENEMY_WEAPON;
+
+    if (effect.kind === 'projectile') {
+      const fromScreen = worldToScreenX(effect.fromX, cam);
+      const toScreen = worldToScreenX(effect.toX, cam);
+      const x = fromScreen + (toScreen - fromScreen) * progress;
+
+      ctx.save();
+      ctx.globalAlpha = 1 - progress * 0.3;
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x - (toScreen - fromScreen) * 0.08, y);
+      ctx.lineTo(x, y);
+      ctx.stroke();
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(x, y, 3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+      continue;
+    }
+
+    const screenX = worldToScreenX(effect.toX, cam);
+    const maxRadius = effect.kind === 'burst' ? 26 : 12;
+    const radius = maxRadius * progress;
+
+    ctx.save();
+    ctx.globalAlpha = 1 - progress;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = effect.kind === 'burst' ? 3 : 2;
+    ctx.beginPath();
+    ctx.arc(screenX, y, radius, 0, Math.PI * 2);
+    ctx.stroke();
+    if (effect.kind === 'burst') {
+      ctx.beginPath();
+      ctx.arc(screenX, y, radius * 0.6, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+}
+
 export function drawWorld(
   ctx: CanvasRenderingContext2D,
   world: World,
   cam: Camera,
   sprites: SpriteCache,
   nowMs: number,
+  effects: Effect[],
 ): void {
   ctx.imageSmoothingEnabled = false;
   drawBackground(ctx, cam);
@@ -164,4 +218,5 @@ export function drawWorld(
   for (const unit of world.units) {
     drawUnit(ctx, world, unit, cam, sprites, nowMs);
   }
+  drawEffects(ctx, cam, effects, nowMs);
 }

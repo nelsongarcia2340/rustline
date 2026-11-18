@@ -1,5 +1,6 @@
 import type { Camera } from './render/camera';
 import { updateCamera } from './render/camera';
+import { createEffectsTracker } from './render/effects';
 import { drawWorld } from './render/renderer';
 import { buildSpriteCache } from './sprites/cache';
 import type { World } from './sim/world';
@@ -17,6 +18,11 @@ let world: World = createWorld();
 const sprites = buildSpriteCache();
 const camera: Camera = { x: 0 };
 const dragState = { manual: false };
+const effects = createEffectsTracker();
+
+const SHAKE_DURATION_MS = 180;
+const SHAKE_MAGNITUDE = 6;
+let shakeStartMs = -Infinity;
 
 const hud = createHud(app, () => world);
 const overlay = createOverlay(app, (freshWorld) => {
@@ -59,9 +65,21 @@ function frame(now: number): void {
   accumulatorMs = result.accumulatorMs;
   for (let i = 0; i < result.ticks; i++) step(world);
 
+  if (world.events.some((event) => event.killed)) {
+    shakeStartMs = now;
+  }
+  effects.absorb(world.events, now);
+  world.events = [];
+
   updateCamera(camera, world, dragState.manual);
+
+  const shakeElapsed = now - shakeStartMs;
+  const shakeDecay = Math.max(0, 1 - shakeElapsed / SHAKE_DURATION_MS);
+  const shakeX = (Math.random() * 2 - 1) * SHAKE_MAGNITUDE * shakeDecay;
+  const renderCamera: Camera = { x: camera.x + shakeX };
+
   ctx.imageSmoothingEnabled = false;
-  drawWorld(ctx, world, camera, sprites, now);
+  drawWorld(ctx, world, renderCamera, sprites, now, effects.active(now));
   hud.update(world);
   overlay.update(world);
 

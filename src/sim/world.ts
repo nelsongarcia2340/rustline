@@ -1,5 +1,6 @@
 import type { Side, UnitDef } from '../data/units';
 import { getDef } from '../data/units';
+import type { AttackEvent } from './combat';
 import { combatPhase } from './combat';
 import { BASE_MAX_HP, SPAWN_X } from './constants';
 import { economyPhase } from './economy';
@@ -24,6 +25,7 @@ export interface World {
   status: 'playing' | 'won' | 'lost';
   bossSpawned: boolean;
   nextUid: number;
+  events: AttackEvent[];
 }
 
 export function createWorld(): World {
@@ -36,6 +38,7 @@ export function createWorld(): World {
     status: 'playing',
     bossSpawned: false,
     nextUid: 1,
+    events: [],
   };
 }
 

@@ -4,6 +4,15 @@ import { BASE_HALF_WIDTH, BASE_X, LANE_MAX, LANE_MIN, TICKS_PER_SEC } from './co
 
 export type Target = { kind: 'unit'; unit: Unit } | { kind: 'base'; side: Side };
 
+export interface AttackEvent {
+  attackerSide: Side;
+  attackerX: number;
+  targetX: number;
+  range: number;
+  splashRadius: number;
+  killed: boolean;
+}
+
 const KNOCKBACK_DISTANCE = 40;
 const STAGGER_TICKS = 10;
 
@@ -70,14 +79,27 @@ function moveUnit(u: Unit): void {
   u.x += (direction * u.def.speed) / TICKS_PER_SEC;
 }
 
+function pushAttackEvent(world: World, attacker: Unit, targetX: number, killed: boolean): void {
+  world.events.push({
+    attackerSide: attacker.def.side,
+    attackerX: attacker.x,
+    targetX,
+    range: attacker.def.range,
+    splashRadius: attacker.def.splashRadius,
+    killed,
+  });
+}
+
 function resolveAttack(world: World, attacker: Unit, target: Target): void {
   if (target.kind === 'base') {
     applyDamage(world, target.side, attacker.def.dmg);
+    pushAttackEvent(world, attacker, BASE_X[target.side], world.baseHp[target.side] <= 0);
     return;
   }
 
   if (attacker.def.splashRadius <= 0) {
     applyDamage(world, target.unit, attacker.def.dmg);
+    pushAttackEvent(world, attacker, target.unit.x, target.unit.hp <= 0);
     return;
   }
 
@@ -87,9 +109,14 @@ function resolveAttack(world: World, attacker: Unit, target: Target): void {
       other.hp > 0 &&
       Math.abs(other.x - target.unit.x) <= attacker.def.splashRadius,
   );
+  let killedAny = false;
   for (const hit of hits) {
     applyDamage(world, hit, attacker.def.dmg);
+    if (hit.hp <= 0) {
+      killedAny = true;
+    }
   }
+  pushAttackEvent(world, attacker, target.unit.x, killedAny);
 }
 
 export function combatPhase(world: World): void {
