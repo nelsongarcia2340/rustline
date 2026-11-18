@@ -15,20 +15,63 @@ function worldToScreenX(worldX: number, cam: Camera): number {
   return worldX - cam.x;
 }
 
-function drawBackground(ctx: CanvasRenderingContext2D, cam: Camera): void {
-  ctx.fillStyle = '#1a1a2e';
-  ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+function drawFarRuins(ctx: CanvasRenderingContext2D, cam: Camera): void {
+  ctx.fillStyle = '#17173a';
+  const period = 320;
+  const offset = -(cam.x * 0.1) % period;
+  const baseY = GROUND_Y * 0.55;
 
-  ctx.fillStyle = '#242450';
-  const parallax = -(cam.x * 0.3) % 240;
-  for (let i = -1; i <= Math.ceil(CANVAS_WIDTH / 240) + 1; i++) {
-    ctx.fillRect(parallax + i * 240, 0, 120, GROUND_Y);
+  for (let i = -1; i <= Math.ceil(CANVAS_WIDTH / period) + 1; i++) {
+    const x = offset + i * period;
+    ctx.beginPath();
+    ctx.moveTo(x, GROUND_Y);
+    ctx.lineTo(x + period * 0.15, baseY - 40);
+    ctx.lineTo(x + period * 0.3, GROUND_Y);
+    ctx.lineTo(x + period * 0.45, baseY - 70);
+    ctx.lineTo(x + period * 0.6, GROUND_Y);
+    ctx.lineTo(x + period * 0.8, baseY - 30);
+    ctx.lineTo(x + period, GROUND_Y);
+    ctx.closePath();
+    ctx.fill();
   }
 }
 
-function drawGround(ctx: CanvasRenderingContext2D): void {
+function drawMidRuins(ctx: CanvasRenderingContext2D, cam: Camera): void {
+  ctx.fillStyle = '#242450';
+  const period = 180;
+  const offset = -(cam.x * 0.3) % period;
+  const baseY = GROUND_Y * 0.8;
+
+  for (let i = -1; i <= Math.ceil(CANVAS_WIDTH / period) + 1; i++) {
+    const x = offset + i * period;
+    ctx.fillRect(x, baseY - 20, period * 0.35, GROUND_Y - (baseY - 20));
+    ctx.fillRect(x + period * 0.45, baseY - 50, period * 0.3, GROUND_Y - (baseY - 50));
+    ctx.fillRect(x + period * 0.8, baseY - 10, period * 0.15, GROUND_Y - (baseY - 10));
+  }
+}
+
+function drawBackground(ctx: CanvasRenderingContext2D, cam: Camera): void {
+  const sky = ctx.createLinearGradient(0, 0, 0, GROUND_Y);
+  sky.addColorStop(0, '#0d0d1f');
+  sky.addColorStop(1, '#2a2a52');
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, CANVAS_WIDTH, GROUND_Y);
+
+  drawFarRuins(ctx, cam);
+  drawMidRuins(ctx, cam);
+}
+
+function drawGround(ctx: CanvasRenderingContext2D, cam: Camera): void {
   ctx.fillStyle = '#3a3a3a';
   ctx.fillRect(0, GROUND_Y, CANVAS_WIDTH, CANVAS_HEIGHT - GROUND_Y);
+
+  ctx.fillStyle = '#343434';
+  const plateWidth = 60;
+  const offset = -(cam.x % (plateWidth * 2));
+  for (let x = offset - plateWidth * 2; x < CANVAS_WIDTH + plateWidth * 2; x += plateWidth * 2) {
+    ctx.fillRect(x, GROUND_Y, plateWidth, CANVAS_HEIGHT - GROUND_Y);
+  }
+
   ctx.fillStyle = '#2d2d2d';
   ctx.fillRect(0, GROUND_Y, CANVAS_WIDTH, 3);
 }
@@ -115,7 +158,7 @@ export function drawWorld(
 ): void {
   ctx.imageSmoothingEnabled = false;
   drawBackground(ctx, cam);
-  drawGround(ctx);
+  drawGround(ctx, cam);
   drawBase(ctx, world, cam, 'player', sprites);
   drawBase(ctx, world, cam, 'enemy', sprites);
   for (const unit of world.units) {
