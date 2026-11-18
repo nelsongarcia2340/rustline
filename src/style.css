@@ -1,0 +1,329 @@
+/*
+ * Everything is laid out in the game's logical 960x540 space. --u is the size of one
+ * logical pixel on screen, so the canvas and the HUD scale together at any window size.
+ */
+:root {
+  --u: calc(min(100vw, 100vh * 16 / 9) / 960);
+  --steel-dark: #14111c;
+  --steel: #2b333c;
+  --steel-light: #4a5a66;
+  --amber: #e8b04a;
+  --amber-dim: #8a6a2e;
+  --blue: #3f86c4;
+  --blue-light: #86c1ee;
+  --red: #e0584a;
+  --text: #e6edf3;
+}
+
+@supports (height: 100dvh) {
+  :root {
+    --u: calc(min(100vw, 100dvh * 16 / 9) / 960);
+  }
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #0b0910;
+  color: var(--text);
+  font-family: 'Trebuchet MS', system-ui, sans-serif;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#app {
+  position: relative;
+  width: calc(960 * var(--u));
+  height: calc(540 * var(--u));
+  flex: none;
+}
+
+#game {
+  display: block;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  touch-action: none;
+  cursor: grab;
+}
+
+#hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  touch-action: none;
+}
+
+/* Top strip */
+.hud-top {
+  position: absolute;
+  top: calc(10 * var(--u));
+  left: calc(12 * var(--u));
+  right: calc(12 * var(--u));
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  font-size: calc(16 * var(--u));
+  font-weight: 700;
+}
+
+.stage-label,
+.enemy-hp {
+  background: rgba(20, 17, 28, 0.78);
+  border: calc(1 * var(--u)) solid var(--steel-light);
+  border-radius: calc(4 * var(--u));
+  padding: calc(5 * var(--u)) calc(10 * var(--u));
+  text-shadow: 0 calc(1 * var(--u)) 0 #000;
+}
+
+.stage-label {
+  color: var(--amber);
+  letter-spacing: 0.04em;
+}
+
+.enemy-hp {
+  display: flex;
+  align-items: center;
+  gap: calc(8 * var(--u));
+  font-size: calc(13 * var(--u));
+}
+
+.enemy-hp-title {
+  color: var(--red);
+}
+
+.enemy-hp .bar {
+  width: calc(150 * var(--u));
+  height: calc(10 * var(--u));
+}
+
+.enemy-hp-text {
+  min-width: calc(80 * var(--u));
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Bars (fill is scaled with transform, no layout work per update) */
+.bar {
+  position: relative;
+  background: #0a0810;
+  border: calc(1 * var(--u)) solid var(--steel-light);
+  overflow: hidden;
+}
+
+.bar-fill {
+  position: absolute;
+  inset: 0;
+  transform-origin: left center;
+}
+
+.bar-energy .bar-fill {
+  background: linear-gradient(#86c1ee, #3f86c4);
+}
+
+.bar-enemy .bar-fill {
+  background: linear-gradient(#f07a6c, #c4412f);
+}
+
+/* Bottom bar */
+.hud-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: calc(100 * var(--u));
+  box-sizing: border-box;
+  padding: calc(8 * var(--u)) calc(12 * var(--u)) calc(10 * var(--u));
+  display: flex;
+  gap: calc(12 * var(--u));
+  background: linear-gradient(#1b1824f2, #14111cf8);
+  border-top: calc(3 * var(--u)) solid var(--amber-dim);
+}
+
+.energy {
+  flex: none;
+  width: calc(170 * var(--u));
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: calc(6 * var(--u));
+}
+
+.energy-head {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  column-gap: calc(8 * var(--u));
+  font-size: calc(13 * var(--u));
+}
+
+.energy-label {
+  color: var(--blue-light);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.energy-text {
+  font-size: calc(18 * var(--u));
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.energy-regen {
+  color: var(--amber);
+  font-size: calc(12 * var(--u));
+}
+
+.bar-energy {
+  height: calc(16 * var(--u));
+  border-radius: calc(3 * var(--u));
+}
+
+.deploy-row {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  gap: calc(8 * var(--u));
+}
+
+.deploy-btn {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+  padding: calc(4 * var(--u)) calc(4 * var(--u)) calc(5 * var(--u));
+  margin: 0;
+  font: inherit;
+  color: var(--text);
+  background: linear-gradient(#37424d, #232a32);
+  border: calc(2 * var(--u)) solid var(--steel-light);
+  border-radius: calc(6 * var(--u));
+  overflow: hidden;
+  pointer-events: auto;
+  touch-action: none;
+  cursor: pointer;
+}
+
+.deploy-btn:not(.disabled):hover {
+  border-color: var(--amber);
+}
+
+.deploy-btn:not(.disabled):active {
+  transform: translateY(calc(1 * var(--u)));
+  background: linear-gradient(#2e3842, #1c2229);
+}
+
+.deploy-btn.disabled {
+  cursor: not-allowed;
+  filter: saturate(0.4) brightness(0.7);
+  border-color: #353b44;
+}
+
+.deploy-btn > * {
+  position: relative;
+}
+
+.cooldown-fill {
+  position: absolute !important;
+  inset: 0;
+  background: rgba(8, 6, 14, 0.62);
+  transform-origin: center bottom;
+  transform: scaleY(0);
+  pointer-events: none;
+}
+
+.unit-icon {
+  width: calc(48 * var(--u));
+  height: calc(40 * var(--u));
+  image-rendering: pixelated;
+}
+
+.unit-name {
+  font-size: calc(12 * var(--u));
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.cost {
+  font-size: calc(15 * var(--u));
+  font-weight: 700;
+  color: var(--blue-light);
+  font-variant-numeric: tabular-nums;
+}
+
+.key-hint {
+  position: absolute !important;
+  top: calc(3 * var(--u));
+  left: calc(5 * var(--u));
+  font-size: calc(11 * var(--u));
+  color: var(--amber);
+  opacity: 0.9;
+}
+
+/* Win / lose overlay */
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: calc(14 * var(--u));
+  background: rgba(10, 8, 16, 0.72);
+  touch-action: none;
+}
+
+.overlay[hidden] {
+  display: none;
+}
+
+.overlay-title {
+  font-size: calc(80 * var(--u));
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-shadow: 0 calc(4 * var(--u)) 0 #000;
+}
+
+.overlay[data-status='won'] .overlay-title {
+  color: var(--amber);
+}
+
+.overlay[data-status='lost'] .overlay-title {
+  color: var(--red);
+}
+
+.overlay-btn {
+  font: inherit;
+  font-size: calc(26 * var(--u));
+  font-weight: 700;
+  padding: calc(10 * var(--u)) calc(40 * var(--u));
+  color: #1b1208;
+  background: linear-gradient(#f3c866, #d39a32);
+  border: calc(3 * var(--u)) solid #8a6a2e;
+  border-radius: calc(8 * var(--u));
+  cursor: pointer;
+  touch-action: none;
+}
+
+.overlay-btn:hover {
+  filter: brightness(1.1);
+}
+
+.overlay-hint {
+  font-size: calc(14 * var(--u));
+  color: #aab8c4;
+}
