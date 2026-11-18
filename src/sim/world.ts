@@ -1,6 +1,7 @@
 import type { Side, UnitDef } from '../data/units';
 import { getDef } from '../data/units';
-import { BASE_MAX_HP, SPAWN_X, TICKS_PER_SEC } from './constants';
+import { combatPhase } from './combat';
+import { BASE_MAX_HP, SPAWN_X } from './constants';
 
 export interface Unit {
   uid: number;
@@ -51,14 +52,7 @@ export function spawnUnit(world: World, defId: string): Unit {
   return unit;
 }
 
-function movePhase(world: World): void {
-  for (const unit of world.units) {
-    const direction = unit.def.side === 'player' ? 1 : -1;
-    unit.x += (direction * unit.def.speed) / TICKS_PER_SEC;
-  }
-}
-
 export function step(world: World): void {
   world.tick += 1;
-  movePhase(world);
+  combatPhase(world);
 }
