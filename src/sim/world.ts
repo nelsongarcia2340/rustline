@@ -55,4 +55,5 @@ export function spawnUnit(world: World, defId: string): Unit {
 export function step(world: World): void {
   world.tick += 1;
   combatPhase(world);
+  world.units = world.units.filter((unit) => unit.hp > 0);
 }
