@@ -34,7 +34,7 @@ The user left the choice to me and approved option 1 with the defaults below.
 
 ## Game rules
 - **Lane:** x from 0 to 3000 world units. Player base at x=100, enemy base at x=2900. Camera shows 960 units at a time and follows the action. The player can drag/scroll it, and it auto-follows the front line by default.
-- **Energy:** starts at 100, regenerates 8/sec, capped at 600. Each unit has a cost and a per-unit redeploy cooldown. A button is disabled while unaffordable or cooling down.
+- **Energy:** starts at 100, regenerates 12/sec, capped at 600. Each unit has a cost and a per-unit redeploy cooldown. A button is disabled while unaffordable or cooling down.
 - **Units** move toward the opposing base at their speed. A unit stops when an enemy (or the enemy base) is within its range and attacks on its attack cooldown. Melee units hit the front-most enemy in range. The Titan's attack hits all enemies within its splash radius.
 - **Knockback:** when a unit's HP crosses each 1/3 threshold from damage (and on death), it is knocked back a short distance and briefly staggers.
 - **Bases:** 2000 HP player, 3500 HP enemy. At 50% enemy base HP, the boss (Overseer) spawns once.

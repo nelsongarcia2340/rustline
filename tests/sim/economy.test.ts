@@ -8,10 +8,10 @@ function run(world: ReturnType<typeof createWorld>, ticks: number): void {
 }
 
 describe('energy regen', () => {
-  it('adds 8 energy per second: 90 idle ticks from 100 gives 124', () => {
+  it('adds 12 energy per second: 90 idle ticks from 100 gives 136', () => {
     const w = createWorld();
     run(w, 90);
-    expect(w.energy).toBeCloseTo(124, 6);
+    expect(w.energy).toBeCloseTo(136, 6);
   });
 
   it('caps at 600', () => {

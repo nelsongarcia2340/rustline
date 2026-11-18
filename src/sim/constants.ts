@@ -18,4 +18,4 @@ export const BOSS_TRIGGER_HP = 1750;
 
 export const START_ENERGY = 100;
 export const ENERGY_CAP = 600;
-export const ENERGY_REGEN_PER_SEC = 8;
+export const ENERGY_REGEN_PER_SEC = 12;

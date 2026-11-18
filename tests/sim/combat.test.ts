@@ -72,14 +72,14 @@ describe('combat in step', () => {
     const s = spawnUnit(w, 'scrapper');
     const r = spawnUnit(w, 'rustbot');
     r.x = s.x + 20;
-    step(w);
+    step(w, []);
     expect(r.hp).toBe(150 - 12);
     expect(s.x).toBe(160);
     expect(r.x).toBe(180);
-    for (let i = 0; i < 23; i++) step(w);
+    for (let i = 0; i < 23; i++) step(w, []);
     expect(w.tick).toBe(24);
     expect(r.hp).toBe(138);
-    step(w);
+    step(w, []);
     expect(w.tick).toBe(25);
     expect(r.hp).toBe(126);
   });
@@ -108,7 +108,7 @@ describe('combat in step', () => {
     const g = spawnUnit(w, 'bolt-gunner');
     const near = spawnUnit(w, 'rustbot');
     near.x = g.x + 200;
-    step(w);
+    step(w, []);
     expect(near.hp).toBe(150 - 18);
     expect(g.x).toBe(160);
 
@@ -128,7 +128,7 @@ describe('combat in step', () => {
     const front = spawnUnit(w, 'rustbot');
     back.x = g.x + 200;
     front.x = g.x + 150;
-    step(w);
+    step(w, []);
     expect(front.hp).toBe(132);
     expect(back.hp).toBe(150);
   });
@@ -139,14 +139,14 @@ describe('combat in step', () => {
     const r = spawnUnit(w, 'rustbot');
     r.x = s.x + 20;
     s.staggerTicks = 3;
-    step(w);
+    step(w, []);
     expect(s.staggerTicks).toBe(2);
     expect(r.hp).toBe(150);
-    step(w);
-    step(w);
+    step(w, []);
+    step(w, []);
     expect(s.staggerTicks).toBe(0);
     expect(r.hp).toBe(150);
-    step(w);
+    step(w, []);
     expect(r.hp).toBe(138);
   });
 });

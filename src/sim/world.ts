@@ -79,7 +79,7 @@ export function step(world: World, script: StageEvent[] = STAGE_1): void {
   // Dead units are removed only now, so same-tick exchanges stay simultaneous.
   world.units = world.units.filter((u) => u.hp > 0);
 
-  if (!world.bossSpawned && world.baseHp.enemy <= BOSS_TRIGGER_HP) {
+  if (!world.bossSpawned && world.baseHp.enemy > 0 && world.baseHp.enemy <= BOSS_TRIGGER_HP) {
     spawnUnit(world, 'overseer');
     world.bossSpawned = true;
   }
