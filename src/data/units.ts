@@ -30,7 +30,7 @@ export const ENEMY_ROSTER: UnitDef[] = [
   { id: 'drone', side: 'enemy', name: 'Drone', cost: 0, cooldownSec: 0, hp: 70, dmg: 14, range: 30, speed: 120, attackIntervalSec: 0.7, splashRadius: 0 },
   { id: 'turret-walker', side: 'enemy', name: 'Turret-Walker', cost: 0, cooldownSec: 0, hp: 180, dmg: 20, range: 250, speed: 35, attackIntervalSec: 1.4, splashRadius: 0 },
   { id: 'siege-tank', side: 'enemy', name: 'Siege Tank', cost: 0, cooldownSec: 0, hp: 800, dmg: 45, range: 50, speed: 28, attackIntervalSec: 2.0, splashRadius: 0 },
-  { id: 'overseer', side: 'enemy', name: 'Overseer', cost: 0, cooldownSec: 0, hp: 3000, dmg: 80, range: 120, speed: 20, attackIntervalSec: 3.0, splashRadius: 120 },
+  { id: 'overseer', side: 'enemy', name: 'Overseer', cost: 0, cooldownSec: 0, hp: 2000, dmg: 50, range: 120, speed: 20, attackIntervalSec: 3.0, splashRadius: 120 },
 ];
 
 const DEFS_BY_ID = new Map<string, UnitDef>(

@@ -31,7 +31,7 @@ describe('unit data', () => {
   });
 
   it('defines the overseer boss with splash', () => {
-    expect(getDef('overseer')).toMatchObject({ hp: 3000, dmg: 80, splashRadius: 120 });
+    expect(getDef('overseer')).toMatchObject({ hp: 2000, dmg: 50, splashRadius: 120 });
   });
 
   it('throws on an unknown id', () => {

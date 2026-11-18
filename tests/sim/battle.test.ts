@@ -118,16 +118,22 @@ describe('headless battle', () => {
     expect(w.baseHp.player).toBe(0);
   });
 
-  it('a sensible strategy wins in 150-600s of game time, under real pressure', () => {
+  it('a sensible strategy wins in about 3-4.5 minutes of game time, under real pressure', () => {
     const rec = runBattle(sensibleStrategy, 600);
     const seconds = rec.world.tick / TICKS_PER_SEC;
     expect(rec.world.status).toBe('won');
     expect(rec.world.baseHp.enemy).toBe(0);
-    expect(seconds).toBeGreaterThan(150);
-    expect(seconds).toBeLessThan(600);
+    // Measured ~211s after tuning (was 490s); band is measured +/- 25%.
+    expect(seconds).toBeGreaterThan(160);
+    expect(seconds).toBeLessThan(265);
     // The player is actually threatened at some point: base damaged, or an enemy got past mid-lane.
     const threatened = rec.minPlayerHp < BASE_MAX_HP.player || rec.minEnemyX < 1500;
     expect(threatened).toBe(true);
+  });
+
+  it('spamming only Scrappers does not win', () => {
+    const rec = runBattle((w) => void deploy(w, 'scrapper'), 600);
+    expect(rec.world.status).toBe('lost');
   });
 
   it('every enemy type in the roster actually spawns during a full run', () => {

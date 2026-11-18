@@ -39,7 +39,7 @@ The user left the choice to me and approved option 1 with the defaults below.
 - **Knockback:** when a unit's HP crosses each 1/3 threshold from damage (and on death), it is knocked back a short distance and briefly staggers.
 - **Bases:** 2000 HP player, 3500 HP enemy. At 50% enemy base HP, the boss (Overseer) spawns once.
 - **Win / lose:** enemy base HP 0 means win. Player base HP 0 means lose. Both show an overlay with a Restart button.
-- **Enemy spawning:** a scripted timeline (list of `{atSecond, type}`) plus a slow trickle of Rustbots, so pressure is constant.
+- **Enemy spawning:** a scripted timeline (list of `{atSecond, type}`) plus a slow trickle of Rustbots, so pressure is constant. Spawns stop at 150s so the lane can clear; after that the Overseer is the finale (tuned in the Task 10 pass: stage cut from 192s to 150s, Overseer 3000 HP / 80 dmg to 2000 HP / 50 dmg).
 
 ## Roster (all numbers are starting values, tuned in playtesting)
 | Player robot | Role | Cost | Cooldown | HP | Dmg | Range | Speed |
@@ -56,7 +56,7 @@ The user left the choice to me and approved option 1 with the defaults below.
 | Drone | fast, fragile | 70 | 14 | 30 | 120 |
 | Turret-Walker | ranged | 180 | 20 | 250 | 35 |
 | Siege Tank | heavy melee | 800 | 45 | 50 | 28 |
-| Overseer (boss) | mini-boss | 3000 | 80 splash | 120 | 20 |
+| Overseer (boss) | mini-boss | 2000 | 50 splash | 120 | 20 |
 
 ## Architecture
 ```

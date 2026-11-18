@@ -5,7 +5,10 @@ export interface StageEvent {
   type: string;
 }
 
-/** Enemy timeline for stage 1. Must stay sorted by `atSecond` ascending. */
+/**
+ * Enemy timeline for stage 1. Must stay sorted by `atSecond` ascending.
+ * Spawns stop at 150s so the lane can clear and the push toward the boss is the finale.
+ */
 export const STAGE_1: StageEvent[] = [
   // Rustbot trickle
   { atSecond: 6, type: 'rustbot' },
@@ -40,15 +43,4 @@ export const STAGE_1: StageEvent[] = [
   { atSecond: 140, type: 'drone' },
   { atSecond: 145, type: 'rustbot' },
   { atSecond: 150, type: 'rustbot' },
-  { atSecond: 154, type: 'turret-walker' },
-  { atSecond: 158, type: 'rustbot' },
-  { atSecond: 162, type: 'drone' },
-  { atSecond: 166, type: 'rustbot' },
-  { atSecond: 170, type: 'siege-tank' },
-  { atSecond: 174, type: 'rustbot' },
-  { atSecond: 177, type: 'drone' },
-  { atSecond: 180, type: 'rustbot' },
-  { atSecond: 184, type: 'turret-walker' },
-  { atSecond: 188, type: 'rustbot' },
-  { atSecond: 192, type: 'rustbot' },
 ];
