@@ -1,10 +1,10 @@
 import type { Side } from '../data/units';
 import { BASE_HALF_WIDTH, BASE_X, TICKS_PER_SEC } from './constants';
+import type { Unit, World } from './world';
 
 const KNOCKBACK_DISTANCE = 40;
 const STAGGER_TICKS = 10;
 const KNOCKBACK_STAGES = 3;
-import type { Unit, World } from './world';
 
 export type Target = { kind: 'unit'; unit: Unit } | { kind: 'base'; side: Side };
 
@@ -67,7 +67,11 @@ function resolveKnockback(u: Unit): void {
   }
 }
 
-/** Damage a unit or base and, for a unit, immediately apply any knockback. Dead units are removed by `step`. */
+/**
+ * Direct damage path for tests and external callers: subtracts HP and, for a unit, resolves
+ * knockback immediately. The game's combat phase instead defers knockback until every attack of
+ * the tick has been resolved. Dead units are removed by `step`.
+ */
 export function applyDamage(world: World, target: Unit | Side, amount: number): void {
   dealDamage(world, target, amount);
   if (typeof target !== 'string') resolveKnockback(target);

@@ -6,6 +6,8 @@ drawn in code; there are no image assets.
 
 ## Run
 
+Requires Node 20.19+ or 22+.
+
 ```
 npm install
 npm run dev      # dev server (also exposes the window.__game debug hook)

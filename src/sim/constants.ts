@@ -13,8 +13,8 @@ export const SPAWN_X: Record<Side, number> = { player: 160, enemy: 2840 };
 
 export const BASE_MAX_HP: Record<Side, number> = { player: 2000, enemy: 3500 };
 
-/** The boss (Overseer) spawns once the enemy base is at or below this HP. */
-export const BOSS_TRIGGER_HP = 1750;
+/** The boss (Overseer) spawns once the enemy base is at or below this HP (50% of its max). */
+export const BOSS_TRIGGER_HP = BASE_MAX_HP.enemy / 2;
 
 export const START_ENERGY = 100;
 export const ENERGY_CAP = 600;

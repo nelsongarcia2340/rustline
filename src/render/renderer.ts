@@ -182,7 +182,8 @@ function silhouetteOf(frame: HTMLCanvasElement): HTMLCanvasElement {
 
 function pickFrame(world: World, u: Unit, sprites: SpriteCache, nowMs: number): HTMLCanvasElement {
   const frames = sprites[u.def.id];
-  if (u.staggerTicks > 0) return frames.walk1;
+  // Once the sim is frozen (win/lose), hold a still pose instead of animating from wall-clock time.
+  if (world.status !== 'playing' || u.staggerTicks > 0) return frames.walk1;
   if (findTarget(world, u)) {
     // Fighting: stand still, striking pose just after each attack.
     const interval = Math.round(u.def.attackIntervalSec * TICKS_PER_SEC);
@@ -216,7 +217,7 @@ function drawUnit(
     ctx.translate(left, 0);
   }
   ctx.drawImage(frame, 0, top, w, h);
-  if (u.staggerTicks > 0) {
+  if (world.status === 'playing' && u.staggerTicks > 0) {
     ctx.globalAlpha = 0.75;
     ctx.drawImage(silhouetteOf(frame), 0, top, w, h);
   }
