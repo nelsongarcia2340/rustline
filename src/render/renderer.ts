@@ -4,6 +4,7 @@ import { BASE_MAX_HP, BASE_X, TICKS_PER_SEC } from '../sim/constants';
 import type { Unit, World } from '../sim/world';
 import type { Side } from '../data/units';
 import { VIEW_WIDTH, type Camera } from './camera';
+import { hash01, isWindowLit } from './skyline';
 
 type SpriteCache = ReturnType<typeof buildSpriteCache>;
 
@@ -35,12 +36,6 @@ const COLORS = {
   hpLow: '#f2c14e',
 };
 
-/** Deterministic pseudo-random in [0, 1) from an integer seed (no Math.random: frames are stable). */
-function hash01(n: number): number {
-  const s = Math.sin(n * 127.1 + 311.7) * 43758.5453;
-  return s - Math.floor(s);
-}
-
 function drawSky(ctx: CanvasRenderingContext2D): void {
   const bands = COLORS.skyBands;
   const h = GROUND_Y / bands.length;
@@ -50,12 +45,29 @@ function drawSky(ctx: CanvasRenderingContext2D): void {
   }
 }
 
+interface SkylineLayer {
+  color: string;
+  tile: number;
+  minH: number;
+  maxH: number;
+  seed: number;
+  chimneys: boolean;
+  windows: boolean;
+}
+
+const FAR_LAYER: SkylineLayer = {
+  color: COLORS.farSkyline, tile: 90, minH: 110, maxH: 250, seed: 11, chimneys: false, windows: false,
+};
+const MID_LAYER: SkylineLayer = {
+  color: COLORS.midSkyline, tile: 150, minH: 50, maxH: 130, seed: 53, chimneys: true, windows: true,
+};
+
 /** A repeating skyline of blocks; `parallax` is the fraction of the camera motion it follows. */
 function drawSkyline(
   ctx: CanvasRenderingContext2D,
   camX: number,
   parallax: number,
-  opts: { color: string; tile: number; minH: number; maxH: number; seed: number; chimneys: boolean; windows: boolean },
+  opts: SkylineLayer,
 ): void {
   const offset = camX * parallax;
   const first = Math.floor(offset / opts.tile);
@@ -77,9 +89,9 @@ function drawSkyline(
     }
     if (opts.windows) {
       ctx.fillStyle = COLORS.windowLit;
-      for (let wy = top + 10; wy < GROUND_Y - 12; wy += 18) {
-        for (let wx = x + 8; wx < x + w - 10; wx += 16) {
-          if (hash01(wx * 0.37 + wy * 1.3 + opts.seed + i) > 0.82) ctx.fillRect(wx, wy, 4, 6);
+      for (let row = 0, wy = top + 10; wy < GROUND_Y - 12; row++, wy += 18) {
+        for (let col = 0, wx = x + 8; wx < x + w - 10; col++, wx += 16) {
+          if (isWindowLit(opts.seed, i, col, row)) ctx.fillRect(wx, wy, 4, 6);
         }
       }
     }
@@ -88,12 +100,8 @@ function drawSkyline(
 
 function drawBackground(ctx: CanvasRenderingContext2D, camX: number): void {
   drawSky(ctx);
-  drawSkyline(ctx, camX, 0.2, {
-    color: COLORS.farSkyline, tile: 90, minH: 110, maxH: 250, seed: 11, chimneys: false, windows: false,
-  });
-  drawSkyline(ctx, camX, 0.5, {
-    color: COLORS.midSkyline, tile: 150, minH: 50, maxH: 130, seed: 53, chimneys: true, windows: true,
-  });
+  drawSkyline(ctx, camX, 0.2, FAR_LAYER);
+  drawSkyline(ctx, camX, 0.5, MID_LAYER);
 }
 
 function drawGround(ctx: CanvasRenderingContext2D, camX: number): void {
@@ -108,7 +116,7 @@ function drawGround(ctx: CanvasRenderingContext2D, camX: number): void {
   const spacing = 80;
   const first = Math.floor(camX / spacing);
   for (let i = first; i <= first + VIEW_WIDTH / spacing + 1; i++) {
-    const x = i * spacing - camX;
+    const x = Math.round(i * spacing - camX);
     ctx.fillRect(x, GROUND_Y + 14, 36, 4);
     ctx.fillRect(x + 20, GROUND_Y + 30, 24, 3);
   }
