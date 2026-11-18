@@ -55,6 +55,15 @@ describe('sprite data', () => {
     }
   });
 
+  it('keeps palette.body equal to one of the sprite palette glyph colours', () => {
+    for (const [id, def] of Object.entries(SPRITES)) {
+      const glyphColours = Object.entries(def.palette)
+        .filter(([key]) => key !== 'body')
+        .map(([, colour]) => colour.toLowerCase());
+      expect(glyphColours, `${id} body colour ${def.palette.body}`).toContain(def.palette.body.toLowerCase());
+    }
+  });
+
   it('animates: unit frames differ from each other', () => {
     for (const id of UNIT_IDS) {
       const { walk1, walk2, attack } = SPRITES[id].frames;

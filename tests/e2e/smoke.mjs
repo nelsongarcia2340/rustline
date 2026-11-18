@@ -33,6 +33,7 @@ async function startServer() {
     stdio: ['ignore', 'pipe', 'pipe'],
     detached: true, // own process group, so the whole tree can be killed
   });
+  server = proc; // visible to the signal handlers while vite is still starting
   let log = '';
   proc.stdout.on('data', (d) => (log += d));
   proc.stderr.on('data', (d) => (log += d));
@@ -48,15 +49,36 @@ async function startServer() {
     }
     await new Promise((r) => setTimeout(r, 200));
   }
-  stopServer(proc);
+  await stopServer(proc);
   throw new Error(`vite did not become ready within 30s:\n${log}`);
 }
 
-function stopServer(proc) {
+const groupAlive = (proc) => {
+  try {
+    process.kill(-proc.pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+/** SIGTERM the vite process group; if anything is still alive after ~2s, SIGKILL the group. */
+async function stopServer(proc) {
   try {
     process.kill(-proc.pid, 'SIGTERM');
   } catch {
-    /* already gone */
+    return; // already gone
+  }
+  const deadline = Date.now() + 2000;
+  while (Date.now() < deadline && groupAlive(proc)) {
+    await new Promise((r) => setTimeout(r, 50));
+  }
+  if (groupAlive(proc)) {
+    try {
+      process.kill(-proc.pid, 'SIGKILL');
+    } catch {
+      /* already gone */
+    }
   }
 }
 
@@ -144,10 +166,21 @@ async function assertNoScrollbars(page, label) {
 
 mkdirSync(outDir, { recursive: true });
 const { chromium } = loadPlaywright();
-const server = await startServer();
+let server;
 let browser;
 let failed = false;
+let shuttingDown = false;
+for (const [sig, code] of [['SIGINT', 130], ['SIGTERM', 143]]) {
+  process.on(sig, async () => {
+    if (shuttingDown) return;
+    shuttingDown = true;
+    await browser?.close().catch(() => {});
+    if (server) await stopServer(server);
+    process.exit(code);
+  });
+}
 try {
+  server = await startServer();
   browser = await chromium.launch();
   const page = await browser.newPage();
   const errors = [];
@@ -160,6 +193,6 @@ try {
   console.error(e);
 } finally {
   await browser?.close();
-  stopServer(server);
+  if (server) await stopServer(server);
 }
 process.exit(failed ? 1 : 0);
