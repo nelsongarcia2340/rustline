@@ -2,6 +2,7 @@ import type { Side, UnitDef } from '../data/units';
 import { getDef } from '../data/units';
 import { combatPhase } from './combat';
 import { BASE_MAX_HP, SPAWN_X } from './constants';
+import { economyPhase } from './economy';
 
 export interface Unit {
   uid: number;
@@ -55,5 +56,6 @@ export function spawnUnit(world: World, defId: string): Unit {
 export function step(world: World): void {
   world.tick += 1;
   combatPhase(world);
+  economyPhase(world);
   world.units = world.units.filter((unit) => unit.hp > 0);
 }
