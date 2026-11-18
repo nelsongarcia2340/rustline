@@ -42,7 +42,7 @@ const overlay = createOverlay(appRoot, () => {
   world = createWorld();
   cam = createCamera();
   accumulatorMs = 0;
-  input.state.dragging = false;
+  input.reset();
   hud.update(world);
   overlay.update(world.status);
 });
@@ -54,6 +54,8 @@ const input = createInput({
 });
 
 function frame(ts: number): void {
+  // Schedule first so one thrown frame cannot kill the loop.
+  requestAnimationFrame(frame);
   const dt = lastTs === null || document.hidden ? 0 : ts - lastTs;
   lastTs = document.hidden ? null : ts;
   const run = ticksToRun(accumulatorMs, dt);
@@ -63,7 +65,6 @@ function frame(ts: number): void {
   drawWorld(ctx, world, cam, sprites, ts);
   hud.update(world);
   overlay.update(world.status);
-  requestAnimationFrame(frame);
 }
 
 if (import.meta.env.DEV) {

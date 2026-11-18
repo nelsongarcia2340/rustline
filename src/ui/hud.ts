@@ -8,14 +8,12 @@ import {
   TICKS_PER_SEC,
 } from '../sim/constants';
 import type { World } from '../sim/world';
+import { DEPLOY_KEYS } from './input';
 
 type SpriteCache = ReturnType<typeof buildSpriteCache>;
 
 const ICON_W = 48;
 const ICON_H = 40;
-
-/** Number keys that deploy the five roster units, in roster order. */
-export const DEPLOY_KEYS = ['1', '2', '3', '4', '5'];
 
 export interface DeployButton {
   def: UnitDef;

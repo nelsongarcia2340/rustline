@@ -1,5 +1,8 @@
 import { panCamera, VIEW_WIDTH, type Camera } from '../render/camera';
-import { DEPLOY_KEYS } from './hud';
+import { createDragTracker } from './drag';
+
+/** Number keys that deploy the five roster units, in roster order. */
+export const DEPLOY_KEYS = ['1', '2', '3', '4', '5'];
 
 export interface InputState {
   /** True while a pointer is dragging the lane; the main loop passes this to updateCamera. */
@@ -8,6 +11,8 @@ export interface InputState {
 
 export interface Input {
   state: InputState;
+  /** End any drag in progress (used on restart). */
+  reset(): void;
   /** Remove every listener this module added. */
   dispose(): void;
 }
@@ -23,20 +28,49 @@ export interface InputOptions {
 /** Drag-to-pan on the canvas and keys 1-5 for the deploy bar. Buttons wire their own pointerdown in the HUD. */
 export function createInput({ canvas, getCamera, onDeployIndex }: InputOptions): Input {
   const state: InputState = { dragging: false };
+  const drag = createDragTracker();
   const ac = new AbortController();
   const opts = { signal: ac.signal };
-  let pointerId: number | null = null;
+  let capturedId: number | null = null;
+  /** Pointer that owns the drag, and its last seen x (other pointers must not disturb it). */
+  let dragId: number | null = null;
   let lastX = 0;
+
+  const releaseCapture = (): void => {
+    if (capturedId === null) return;
+    const id = capturedId;
+    capturedId = null;
+    try {
+      if (canvas.hasPointerCapture(id)) canvas.releasePointerCapture(id);
+    } catch {
+      // The pointer is already gone; nothing to release.
+    }
+  };
+
+  /** The one place a drag ends (pointerup, cancel, lost capture, blur, restart). */
+  const endDrag = (pointerId?: number): void => {
+    if (!drag.end(pointerId)) return;
+    dragId = null;
+    state.dragging = false;
+    releaseCapture();
+  };
 
   canvas.addEventListener(
     'pointerdown',
     (e) => {
-      if (pointerId !== null) return;
+      // Mouse: primary button only. Touch and pen report button 0 on contact.
+      if (e.button !== 0) return;
+      if (!drag.start(e.pointerId)) return;
       e.preventDefault();
-      pointerId = e.pointerId;
+      dragId = e.pointerId;
       lastX = e.clientX;
       state.dragging = true;
-      canvas.setPointerCapture(e.pointerId);
+      try {
+        canvas.setPointerCapture(e.pointerId);
+        capturedId = e.pointerId;
+      } catch {
+        // Capture can fail for a pointer that just vanished; the drag still works without it.
+      }
     },
     opts,
   );
@@ -44,25 +78,21 @@ export function createInput({ canvas, getCamera, onDeployIndex }: InputOptions):
   canvas.addEventListener(
     'pointermove',
     (e) => {
-      if (e.pointerId !== pointerId) return;
+      if (e.pointerId !== dragId) return;
       const width = canvas.getBoundingClientRect().width;
       if (width <= 0) return;
       const dxPixels = e.clientX - lastX;
       lastX = e.clientX;
-      // Dragging right moves the world right, so the view moves left.
-      panCamera(getCamera(), -dxPixels * (VIEW_WIDTH / width));
+      const pan = drag.move(e.pointerId, dxPixels, VIEW_WIDTH / width);
+      if (pan !== 0) panCamera(getCamera(), pan);
     },
     opts,
   );
 
-  const endDrag = (e: PointerEvent): void => {
-    if (e.pointerId !== pointerId) return;
-    pointerId = null;
-    state.dragging = false;
-    if (canvas.hasPointerCapture(e.pointerId)) canvas.releasePointerCapture(e.pointerId);
-  };
-  canvas.addEventListener('pointerup', endDrag, opts);
-  canvas.addEventListener('pointercancel', endDrag, opts);
+  canvas.addEventListener('pointerup', (e) => endDrag(e.pointerId), opts);
+  canvas.addEventListener('pointercancel', (e) => endDrag(e.pointerId), opts);
+  canvas.addEventListener('lostpointercapture', (e) => endDrag(e.pointerId), opts);
+  window.addEventListener('blur', () => endDrag(), opts);
 
   window.addEventListener(
     'keydown',
@@ -74,5 +104,14 @@ export function createInput({ canvas, getCamera, onDeployIndex }: InputOptions):
     opts,
   );
 
-  return { state, dispose: () => ac.abort() };
+  return {
+    state,
+    reset: () => {
+      drag.reset();
+      dragId = null;
+      state.dragging = false;
+      releaseCapture();
+    },
+    dispose: () => ac.abort(),
+  };
 }

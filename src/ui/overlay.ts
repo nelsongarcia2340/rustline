@@ -27,6 +27,7 @@ export function createOverlay(root: HTMLElement, onRestart: () => void): Overlay
 
   let shown: World['status'] = 'playing';
 
+  /** No-op unless a result is showing, so pointerdown followed by click cannot restart twice. */
   const restart = (): void => {
     if (shown === 'playing') return;
     onRestart();
@@ -36,7 +37,10 @@ export function createOverlay(root: HTMLElement, onRestart: () => void): Overlay
     e.preventDefault();
     restart();
   });
+  // Keyboard activation (Space/Enter on the focused button) arrives as a click.
+  button.addEventListener('click', restart);
   window.addEventListener('keydown', (e) => {
+    if (shown === 'playing') return;
     if (e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
     if (e.key === 'r' || e.key === 'R' || e.key === 'Enter') {
       e.preventDefault();
