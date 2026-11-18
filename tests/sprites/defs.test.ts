@@ -56,4 +56,10 @@ describe('sprite definitions', () => {
       expect(redChannel(body)).toBeGreaterThan(blueChannel(body));
     }
   });
+
+  it('gives units distinguishable silhouettes, not one shape for everyone', () => {
+    const ids = [...PLAYER_ROSTER, ...ENEMY_ROSTER].map((def) => def.id);
+    const shapes = new Set(ids.map((id) => SPRITES[id].frames.walk1.join('\n')));
+    expect(shapes.size).toBeGreaterThanOrEqual(5);
+  });
 });
