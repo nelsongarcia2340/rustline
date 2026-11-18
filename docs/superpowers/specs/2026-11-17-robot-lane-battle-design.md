@@ -33,10 +33,10 @@ Stage map, currency/upgrades, saving, gacha/unlocks, unit evolutions, base canno
 The user left the choice to me and approved option 1 with the defaults below.
 
 ## Game rules
-- **Lane:** x from 0 to 3000 world units. Player base at x=100, enemy base at x=2900. Camera shows 960 units at a time and follows the action. The player can drag/scroll it, and it auto-follows the front line by default.
+- **Lane:** x from 0 to 3000 world units. Player base at x=100, enemy base at x=2900. Camera shows 960 units at a time and follows the action. The player can drag it, and it auto-follows the front line by default.
 - **Energy:** starts at 100, regenerates 12/sec, capped at 600. Each unit has a cost and a per-unit redeploy cooldown. A button is disabled while unaffordable or cooling down.
 - **Units** move toward the opposing base at their speed. A unit stops when an enemy (or the enemy base) is within its range and attacks on its attack cooldown. Melee units hit the front-most enemy in range. The Titan's attack hits all enemies within its splash radius.
-- **Knockback:** when a unit's HP crosses each 1/3 threshold from damage (and on death), it is knocked back a short distance and briefly staggers.
+- **Knockback:** when a unit's HP crosses each 1/3 of its max HP lost, it is knocked back a short distance and briefly staggers. There is no knockback on the killing blow (the unit is removed that tick).
 - **Bases:** 2000 HP player, 3500 HP enemy. At 50% enemy base HP, the boss (Overseer) spawns once.
 - **Win / lose:** enemy base HP 0 means win. Player base HP 0 means lose. Both show an overlay with a Restart button.
 - **Enemy spawning:** a scripted timeline (list of `{atSecond, type}`) plus a slow trickle of Rustbots, so pressure is constant. Spawns stop at 150s so the lane can clear; after that the Overseer is the finale (tuned in the Task 10 pass: stage cut from 192s to 150s, Overseer 3000 HP / 80 dmg to 2000 HP / 50 dmg).
@@ -61,13 +61,13 @@ The user left the choice to me and approved option 1 with the defaults below.
 ## Architecture
 ```
 src/
-  sim/      # pure logic: World, Unit, tick(), combat, energy, spawning, win/lose
-  data/     # unit stats, stage timeline (plain data)
-  render/   # canvas drawing, camera, sprite cache, effects
-  sprites/  # pixel-grid definitions + palette + animation frames
-  ui/       # deploy bar, energy meter, overlays, input handling
+  sim/      # pure logic: constants.ts, world.ts (World, Unit, step), combat.ts, economy.ts, spawn.ts, spawner.ts
+  data/     # units.ts (unit stats), stage1.ts (stage timeline); plain data
+  render/   # camera.ts, renderer.ts (canvas drawing), skyline.ts
+  sprites/  # types.ts, defs.ts, base.ts, palette.ts, cache.ts (offscreen sprite cache), units-player.ts, units-enemy.ts
+  ui/       # hud.ts (deploy bar, energy meter), input.ts, drag.ts, overlay.ts, loop.ts
   main.ts   # loop: fixed-step sim, render every frame
-tests/      # Vitest tests for sim/ and data/
+tests/      # Vitest tests for sim/, data/, render/, sprites/ and ui/; tests/e2e/smoke.mjs is the Playwright smoke check
 ```
 Sprites: each is a character grid (e.g. 24x24) with a palette, 2 walk frames and 1 attack frame, rendered once to offscreen canvases and drawn scaled up. Swapping in PNG sheets later only touches `sprites/`.
 

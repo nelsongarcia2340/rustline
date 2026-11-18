@@ -11,12 +11,13 @@
 **Spec:** `docs/superpowers/specs/2026-11-17-robot-lane-battle-design.md`
 
 ## Global Constraints
+- Tuned after the plan was written: regen 12/s, Overseer HP 2000 and damage 50, stage 1 spawns end at 150s; the spec and src/data are the source of truth.
 - Sim layer imports nothing from the DOM or canvas. `TICKS_PER_SEC = 30`.
 - Logical canvas 960x540, crisp scaling (`imageSmoothingEnabled = false`), landscape.
 - Lane 0..3000; player base x=100, enemy base x=2900; base hit-width 60 (a unit is in range of a base when `abs(unit.x - baseX) - 60 <= range`). Player spawn x=160, enemy spawn x=2840.
-- Energy: start 100, regen 8/sec, cap 600. Bases: player 2000 HP, enemy 3500 HP. Boss (Overseer) spawns once when enemy base HP <= 50%.
+- Energy: start 100, regen 12/sec, cap 600. Bases: player 2000 HP, enemy 3500 HP. Boss (Overseer) spawns once when enemy base HP <= 50%.
 - Unit stats exactly as in the spec's roster tables. Attack intervals (my call, seconds): Scrapper 0.8, Bolt-Gunner 1.2, Bulwark 1.5, Sprinter 0.7, Titan 3.0; Rustbot 1.0, Drone 0.7, Turret-Walker 1.4, Siege Tank 2.0, Overseer 3.0. Splash radius 90 for Titan and 120 for Overseer.
-- Knockback at each 1/3 of max HP lost (and on death): 40 units backward, 10-tick stagger (no moving or attacking).
+- Knockback at each 1/3 of max HP lost; no knockback on the killing blow (the unit is removed that tick): 40 units backward, 10-tick stagger (no moving or attacking).
 - All names, art and stages original. Commit messages end with the attribution lines given in the session.
 
 ## Review Focus
@@ -81,9 +82,9 @@
 **Files:** Create `src/sim/economy.ts`; Modify `src/sim/world.ts`; Test `tests/sim/economy.test.ts`
 
 **Interfaces:**
-- Produces: `canDeploy(world: World, defId: string): boolean`; `deploy(world: World, defId: string): boolean` (spends cost, starts cooldown, spawns the unit); energy regen is 8/sec applied each step, capped at 600; cooldowns tick down each step.
+- Produces: `canDeploy(world: World, defId: string): boolean`; `deploy(world: World, defId: string): boolean` (spends cost, starts cooldown, spawns the unit); energy regen is 12/sec applied each step, capped at 600; cooldowns tick down each step.
 
-- [ ] **Step 1: Failing tests:** 90 ticks idle → energy 100 + 24 = 124; capped at 600; energy exactly 50 → `deploy('scrapper')` true and energy 0; energy 49 → false, nothing changes; second scrapper deploy during its 2s cooldown → false, passes after 60 ticks; `deploy` returns false and changes nothing when `status !== 'playing'`.
+- [ ] **Step 1: Failing tests:** 90 ticks idle → energy 100 + 36 = 136; capped at 600; energy exactly 50 → `deploy('scrapper')` true and energy 0; energy 49 → false, nothing changes; second scrapper deploy during its 2s cooldown → false, passes after 60 ticks; `deploy` returns false and changes nothing when `status !== 'playing'`.
 - [ ] **Step 2-5:** Run FAIL, implement, run PASS, commit.
 
 ### Task 6: Stage script, boss, win/lose, headless battle
