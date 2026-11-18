@@ -1,11 +1,8 @@
-import type { Camera } from '../render/camera';
+import { CAMERA_MAX, CAMERA_MIN, type Camera } from '../render/camera';
 
 export interface DragState {
-  dragging: boolean;
+  manual: boolean;
 }
-
-const CAMERA_MIN = 0;
-const CAMERA_MAX = 3000 - 960;
 
 export function attachDragPan(canvas: HTMLCanvasElement, cam: Camera, dragState: DragState): void {
   let lastX = 0;
@@ -18,7 +15,7 @@ export function attachDragPan(canvas: HTMLCanvasElement, cam: Camera, dragState:
 
   function start(clientX: number): void {
     active = true;
-    dragState.dragging = true;
+    dragState.manual = true;
     lastX = clientX;
   }
 
@@ -33,7 +30,6 @@ export function attachDragPan(canvas: HTMLCanvasElement, cam: Camera, dragState:
 
   function end(): void {
     active = false;
-    dragState.dragging = false;
   }
 
   canvas.addEventListener('mousedown', (e) => start(e.clientX));

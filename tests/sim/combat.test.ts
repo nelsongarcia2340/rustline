@@ -26,9 +26,9 @@ describe('walking to the base', () => {
     const world = createWorld();
     const scrapper = spawnUnit(world, 'scrapper');
 
-    for (let i = 0; i < 1326; i++) combatPhase(world);
+    for (let i = 0; i < 876; i++) combatPhase(world);
 
-    expect(scrapper.x).toBeCloseTo(2810, 6);
+    expect(scrapper.x).toBeCloseTo(1910, 6);
     expect(world.baseHp.enemy).toBe(3500 - 12);
   });
 });

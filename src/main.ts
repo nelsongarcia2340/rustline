@@ -16,12 +16,13 @@ const app = document.querySelector<HTMLDivElement>('#app')!;
 let world: World = createWorld();
 const sprites = buildSpriteCache();
 const camera: Camera = { x: 0 };
-const dragState = { dragging: false };
+const dragState = { manual: false };
 
 const hud = createHud(app, () => world);
 const overlay = createOverlay(app, (freshWorld) => {
   world = freshWorld;
   camera.x = 0;
+  dragState.manual = false;
 });
 
 attachDragPan(canvas, camera, dragState);
@@ -58,7 +59,7 @@ function frame(now: number): void {
   accumulatorMs = result.accumulatorMs;
   for (let i = 0; i < result.ticks; i++) step(world);
 
-  updateCamera(camera, world, dragState.dragging);
+  updateCamera(camera, world, dragState.manual);
   ctx.imageSmoothingEnabled = false;
   drawWorld(ctx, world, camera, sprites, now);
   hud.update(world);

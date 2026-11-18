@@ -6,10 +6,10 @@ describe('camera', () => {
   it('never leaves its clamp range', () => {
     const world = createWorld();
     const unit = spawnUnit(world, 'scrapper');
-    unit.x = 2950;
+    unit.x = 2050;
     const cam = { x: 0 };
     for (let i = 0; i < 500; i++) updateCamera(cam, world, false);
-    expect(cam.x).toBeLessThanOrEqual(2040);
+    expect(cam.x).toBeLessThanOrEqual(1140);
     expect(cam.x).toBeGreaterThanOrEqual(0);
   });
 

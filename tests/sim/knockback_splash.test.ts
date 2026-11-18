@@ -42,11 +42,11 @@ describe('knockback thresholds', () => {
   it('clamps knockback so an enemy unit is never pushed behind its own base', () => {
     const world = createWorld();
     const rustbot = spawnUnit(world, 'rustbot');
-    rustbot.x = 2880;
+    rustbot.x = 1980;
 
     applyDamage(world, rustbot, 60);
 
-    expect(rustbot.x).toBe(2900);
+    expect(rustbot.x).toBe(2000);
   });
 });
 

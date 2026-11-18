@@ -21,7 +21,7 @@ describe('spawning', () => {
   it('spawns an enemy unit at the enemy spawn point', () => {
     const world = createWorld();
     const rustbot = spawnUnit(world, 'rustbot');
-    expect(rustbot.x).toBe(2840);
+    expect(rustbot.x).toBe(1940);
   });
 });
 
@@ -37,6 +37,6 @@ describe('movement', () => {
     const world = createWorld();
     const rustbot = spawnUnit(world, 'rustbot');
     for (let i = 0; i < 30; i++) step(world);
-    expect(rustbot.x).toBeCloseTo(2790, 6);
+    expect(rustbot.x).toBeCloseTo(1890, 6);
   });
 });

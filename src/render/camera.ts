@@ -1,16 +1,17 @@
+import { LANE_MAX, LANE_MIN } from '../sim/constants';
 import type { World } from '../sim/world';
 
 export interface Camera {
   x: number;
 }
 
-const VIEWPORT_WIDTH = 960;
-const CAMERA_MIN = 0;
-const CAMERA_MAX = 3000 - VIEWPORT_WIDTH;
+export const VIEWPORT_WIDTH = 960;
+export const CAMERA_MIN = LANE_MIN;
+export const CAMERA_MAX = LANE_MAX - VIEWPORT_WIDTH;
 const EASE = 0.1;
 
-export function updateCamera(cam: Camera, world: World, dragging: boolean): void {
-  if (dragging) {
+export function updateCamera(cam: Camera, world: World, manual: boolean): void {
+  if (manual) {
     return;
   }
 
