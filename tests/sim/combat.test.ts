@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { combatPhase } from '../../src/sim/combat';
 import { createWorld, spawnUnit, step } from '../../src/sim/world';
 
 describe('melee engagement', () => {
@@ -25,7 +26,7 @@ describe('walking to the base', () => {
     const world = createWorld();
     const scrapper = spawnUnit(world, 'scrapper');
 
-    for (let i = 0; i < 1326; i++) step(world);
+    for (let i = 0; i < 1326; i++) combatPhase(world);
 
     expect(scrapper.x).toBeCloseTo(2810, 6);
     expect(world.baseHp.enemy).toBe(3500 - 12);

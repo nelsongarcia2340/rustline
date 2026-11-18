@@ -3,7 +3,7 @@ import { TICKS_PER_SEC } from './constants';
 import type { World } from './world';
 import { spawnUnit } from './world';
 
-const ENERGY_REGEN_PER_SEC = 8;
+const ENERGY_REGEN_PER_SEC = 24;
 const ENERGY_CAP = 600;
 
 export function canDeploy(world: World, defId: string): boolean {

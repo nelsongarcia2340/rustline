@@ -3,10 +3,10 @@ import { canDeploy, deploy } from '../../src/sim/economy';
 import { createWorld, step } from '../../src/sim/world';
 
 describe('energy regen', () => {
-  it('regenerates 8 per second, capped at 600', () => {
+  it('regenerates 24 per second, capped at 600', () => {
     const world = createWorld();
     for (let i = 0; i < 90; i++) step(world);
-    expect(world.energy).toBeCloseTo(124, 6);
+    expect(world.energy).toBeCloseTo(172, 6);
   });
 
   it('never exceeds the energy cap', () => {

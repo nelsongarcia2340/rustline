@@ -141,12 +141,12 @@ export const ENEMY_ROSTER: UnitDef[] = [
     name: 'Overseer',
     cost: 0,
     cooldownSec: 0,
-    hp: 3000,
-    dmg: 80,
-    range: 120,
+    hp: 2200,
+    dmg: 70,
+    range: 70,
     speed: 20,
     attackIntervalSec: 3.0,
-    splashRadius: 120,
+    splashRadius: 25,
   },
 ];
 

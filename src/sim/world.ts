@@ -3,6 +3,7 @@ import { getDef } from '../data/units';
 import { combatPhase } from './combat';
 import { BASE_MAX_HP, SPAWN_X } from './constants';
 import { economyPhase } from './economy';
+import { spawnerPhase } from './spawner';
 
 export interface Unit {
   uid: number;
@@ -54,8 +55,20 @@ export function spawnUnit(world: World, defId: string): Unit {
 }
 
 export function step(world: World): void {
+  if (world.status !== 'playing') {
+    return;
+  }
+
   world.tick += 1;
   combatPhase(world);
+  spawnerPhase(world);
   economyPhase(world);
+
+  if (world.baseHp.player <= 0) {
+    world.status = 'lost';
+  } else if (world.baseHp.enemy <= 0) {
+    world.status = 'won';
+  }
+
   world.units = world.units.filter((unit) => unit.hp > 0);
 }
